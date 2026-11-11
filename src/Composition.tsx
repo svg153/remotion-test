@@ -123,9 +123,9 @@ const HeroSection: React.FC = () => {
           <Particle
             key={i}
             delay={i * 5}
-            size={Math.random() * 4 + 2}
-            x={Math.random() * 100}
-            y={Math.random() * 100}
+            size={2 + ((i * 17) % 5)}
+            x={(i * 37) % 100}
+            y={(i * 53) % 100}
           />
         ))}
       </div>

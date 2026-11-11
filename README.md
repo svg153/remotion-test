@@ -229,6 +229,10 @@ npx remotion still MyComp --scale=0.25 --frame=420
 npx remotion render src/index.ts MyComp out/video.mp4 --image-format=jpeg --codec=libx264 --pixel-format=yuv420p
 ```
 
+## 🎞️ Staged video production starter
+
+Use [the review-gated content factory](content-factory/README.md) to prototype a storyboard, still previews, a short motion test and final MP4/GIF exports using data-driven landscape/portrait compositions. It leaves the existing GitHub tutorial intact.
+
 ## 🤝 Contributing
 
 1. Make changes to `src/Composition.tsx`
