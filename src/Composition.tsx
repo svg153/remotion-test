@@ -1,4 +1,4 @@
-import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from "remotion";
 
 // GitHub brand colors
 const GITHUB_COLORS = {
@@ -380,7 +380,7 @@ export const MyComposition: React.FC = () => {
       }}
     >
       {/* Hero Section (0-120 frames / 0-4 seconds) */}
-      <Sequence from={0} durationInFrames={120}>
+      <Sequence durationInFrames={120}>
         <HeroSection />
       </Sequence>
       
