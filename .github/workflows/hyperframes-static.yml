@@ -52,7 +52,7 @@ jobs:
       - name: Check HyperFrames with pinned CLI 0.9.72
         run: |
           mkdir -p out/hyperframes
-          npx --yes hyperframes@0.9.72 check ./hyperframes --json > out/hyperframes/check.json
+          npx --yes hyperframes@0.9.72 check ./hyperframes --json > out/hyperframes/check.json || { cat out/hyperframes/check.json; exit 1; }
       - name: Render one snapshot from each scene
         run: |
           npx --yes hyperframes@0.9.72 snapshot ./hyperframes --at 1.16,4.16,7.16,10.16 --no-end --output out/hyperframes/stills

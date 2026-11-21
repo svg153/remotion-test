@@ -66,7 +66,7 @@ p{font-size:35px;color:#b0b8c3;margin:0;line-height:1.35;max-width:940px}
 </style>
 </head>
 <body>
-  <main id="root" data-composition-id="main" data-start="0" data-duration="${total/s.fps}" data-width="1280" data-height="720">
+  <main id="root" data-composition-id="main" data-start="0" data-duration="${total/s.fps}" data-width="1280" data-height="720" data-no-timeline="true">
 ${scenes}
   </main>
 </body>
