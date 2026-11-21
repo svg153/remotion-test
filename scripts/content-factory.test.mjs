@@ -27,10 +27,14 @@ test("same timing and no externally fetched assets", () => {
   let offset=0;
   for (const shot of story.shots) {
     assert.ok(html.includes('id="scene-' + shot.id + '"'));
+    assert.ok(html.includes('data-composition-src="compositions/scene-' + shot.id + '.html"'));
+    const scene = readFileSync(resolve(root, "hyperframes/compositions/scene-" + shot.id + ".html"), "utf8");
+    assert.ok(scene.includes('data-composition-id="scene-' + shot.id + '"'));
+    assert.ok(scene.includes("NO PUBLICAR SIN REVISIÓN"));
     assert.ok(html.includes('data-start="' + offset/story.fps + '" data-duration="' + shot.durationFrames/story.fps + '"'));
     offset+=shot.durationFrames;
   }
   assert.ok(html.includes('data-duration="12" data-width="1280" data-height="720"'));
-  assert.ok(html.includes("NO PUBLICAR SIN REVISIÓN"));
+  assert.equal((html.match(/data-composition-src=/g) || []).length, 4);
   assert.doesNotMatch(html, /https?:\/\/|<script[^>]+src=|<audio|<video/);
 });
