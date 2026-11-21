@@ -18,7 +18,7 @@ Track scene IDs, brand/assets, public/privacy classification, approval status, r
 ## Editing the demo
 
 1. Install: `npm ci`.
-2. Edit scene content and frame counts in `src/content-factory/story.ts`.
+2. Edit scene content and frame counts in `content-factory/story.json` (canonical data for both engines).
 3. Edit visuals/transitions in `src/ContentFactory.tsx`; both aspect ratios reuse the same scene data.
 4. Preview: `npm run dev`. Select one of:
    - `MyComp`: the original tutorial
@@ -61,3 +61,7 @@ GIF is silent and typically larger than a comparable MP4/WebM. Prefer MP4/WebM f
 ## Publication safety
 
 Check that each displayed name, brand, date, project status, event detail and endorsement claim is backed by an allowed public source. Do not use private repository screens, customer identifiers or unreleased commercial material. Confirm permissions for personal photos, voice cloning, music and logos. Verify render artifacts open and play; code review alone is not playback QA.
+
+## HyperFrames controlled pilot
+
+The experimental HyperFrames composition is generated from the **same** 12-second storyboard as Remotion. Run `node scripts/build-hyperframes.mjs` after any change to `story.json`, and `node scripts/build-hyperframes.mjs --check` before a PR. This only checks data parity, not visual quality. Follow [the paired comparison protocol](comparison.md) and review the [HyperFrames test](../hyperframes/README.md) before declaring a winner. Interactive presentation decks require a separate `/slideshow` path and do not export as one complete MP4.
