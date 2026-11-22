@@ -17,9 +17,10 @@ const easeIn = (frame: number) =>
     extrapolateRight: "clamp",
   });
 
-const ShotScene: React.FC<{ shot: Shot; sceneIndex: number }> = ({
+const ShotScene: React.FC<{ shot: Shot; sceneIndex: number; sceneCount: number }> = ({
   shot,
   sceneIndex,
+  sceneCount,
 }) => {
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
@@ -70,7 +71,7 @@ const ShotScene: React.FC<{ shot: Shot; sceneIndex: number }> = ({
         }}
       >
         <div style={{ fontSize: portrait ? 28 : 22, color: SECONDARY, marginBottom: 22 }}>
-          0{sceneIndex + 1} / 0{storyShots.length} · {shot.role.toUpperCase()}
+          0{sceneIndex + 1} / 0{sceneCount} · {shot.role.toUpperCase()}
         </div>
         <h1
           style={{
@@ -115,22 +116,26 @@ const ShotScene: React.FC<{ shot: Shot; sceneIndex: number }> = ({
   );
 };
 
-export const ContentFactory: React.FC = () => {
+export type FactoryVideoProps = { shots: Shot[]; width: number; height: number; fps: number };
+
+export const FactoryVideo: React.FC<FactoryVideoProps> = ({ shots }) => {
   let start = 0;
   return (
     <AbsoluteFill style={{ background: BG }}>
-      {storyShots.map((shot, index) => {
+      {shots.map((shot, index) => {
         const from = start;
         start += shot.durationFrames;
         return (
           <Sequence key={shot.id} from={from} durationInFrames={shot.durationFrames}>
-            <ShotScene shot={shot} sceneIndex={index} />
+            <ShotScene shot={shot} sceneIndex={index} sceneCount={shots.length} />
           </Sequence>
         );
       })}
     </AbsoluteFill>
   );
 };
+
+export const ContentFactory: React.FC = () => <FactoryVideo shots={[...storyShots]} width={1280} height={720} fps={30} />;
 
 // The animation is cyclic by construction: sin(0) == sin(2π).
 export const BlogLoop: React.FC = () => {

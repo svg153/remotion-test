@@ -25,7 +25,9 @@
     "dev": "remotion studio",
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "factory": "node scripts/factory.mjs",
+    "test:factory": "node --test scripts/factory.test.mjs scripts/content-factory.test.mjs"
   },
   "sideEffects": [
     "*.css"

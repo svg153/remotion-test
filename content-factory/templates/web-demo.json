@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "sample-web-demo",
+  "kind": "web-demo",
+  "title": "Demo web-demo",
+  "audience": "Desarrolladores",
+  "objective": "Explicar una idea",
+  "engine": "web-demo-video",
+  "format": "16:9",
+  "fps": 30,
+  "sensitivity": "public",
+  "demo": true,
+  "claims": [],
+  "assets": [],
+  "source": {
+    "url": "",
+    "rights": "pending"
+  }
+}

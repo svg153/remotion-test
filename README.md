@@ -1,4 +1,6 @@
-# GitHub Tutorial Video - Remotion
+# Content Factory (Remotion + HyperFrames)
+
+Start with the [Content Factory manual](content-factory/factory.md), [tool registry](content-factory/tools.md) and `npm run factory -- help`. This project retains the original Remotion tutorial and benchmark below.
 
 > **A professional animated video tutorial showing how to create a GitHub account and push a local repository.**
 

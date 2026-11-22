@@ -1,0 +1,94 @@
+name: Content Factory
+on:
+  pull_request:
+    paths:
+      - 'apm.yml'
+      - 'apm.lock.yaml'
+      - 'AGENTS.md'
+      - 'content-factory/**'
+      - 'scripts/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/content-factory.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: factory-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: node scripts/build-hyperframes.mjs --check
+      - run: npm run test:factory
+  skill-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: microsoft/apm-action@64544310be26812256300543071bfbaa8bc93aad
+        with:
+          apm-version: '0.37.0'
+          setup-only: 'true'
+      - name: Resolve or replay APM skill pins
+        run: |
+          if test -f apm.lock.yaml; then
+            apm install --frozen --target agent-skills
+          else
+            apm install --target agent-skills
+          fi
+          test -f apm.lock.yaml
+          for skill in motion-content-production remotion-best-practices hyperframes hyperframes-cli hyperframes-registry media-use slideshow remotion-to-hyperframes; do
+            test -s ".agents/skills/$skill/SKILL.md"
+          done
+          apm audit
+          if git ls-files --error-unmatch apm.lock.yaml >/dev/null 2>&1; then
+            git diff --exit-code -- apm.yml apm.lock.yaml
+          else
+            echo 'Initial lock generated; commit this actual file before merging.'
+          fi
+      - name: Upload resolved lock and audit evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: apm-lock
+          path: apm.lock.yaml
+          if-no-files-found: warn
+          retention-days: 7
+  local-clip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Make a synthetic 3-second local source and project
+        run: |
+          mkdir -p workspace/ci-clip
+          ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=640x360:rate=30 -t 3 -c:v libx264 -pix_fmt yuv420p workspace/ci-clip/input.mp4
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("content-factory/templates/clip.json")); p.id="ci-clip"; p.source={path:"input.mp4",rights:"owned"}; p.clips=[{id:"extract",start:0.5,end:2.5,reason:"Synthetic fixture"}]; fs.writeFileSync("workspace/ci-clip/project.json",JSON.stringify(p));'
+          node scripts/factory.mjs plan workspace/ci-clip/project.json > workspace/ci-clip/plan.json
+          digest=$(node -p 'require("./workspace/ci-clip/plan.json").approval')
+          node scripts/factory.mjs render workspace/ci-clip/project.json --approve "$digest"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: factory-clip-smoke
+          path: out/factory/ci-clip/
+          retention-days: 7

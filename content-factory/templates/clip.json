@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "sample-clip",
+  "kind": "clip",
+  "title": "Demo clip",
+  "audience": "Desarrolladores",
+  "objective": "Explicar una idea",
+  "engine": "ffmpeg",
+  "format": "9:16",
+  "fps": 30,
+  "sensitivity": "public",
+  "demo": true,
+  "claims": [],
+  "assets": [],
+  "source": {
+    "path": "",
+    "rights": "pending"
+  },
+  "clips": [
+    {
+      "id": "extract-1",
+      "start": 0,
+      "end": 10,
+      "reason": "Seleccionar un fragmento completo tras revisar la transcripción"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "sample-personal-brand",
+  "kind": "personal-brand",
+  "title": "Demo personal-brand",
+  "audience": "Desarrolladores",
+  "objective": "Explicar una idea",
+  "engine": "hyperframes",
+  "format": "16:9",
+  "fps": 30,
+  "sensitivity": "public",
+  "demo": true,
+  "claims": [],
+  "assets": [],
+  "shots": [
+    {
+      "id": "hook",
+      "role": "hook",
+      "eyebrow": "DEMO / APERTURA",
+      "headline": "Una idea merece ser entendida",
+      "detail": "Qué cambia y por qué importa.",
+      "accent": "#79c0ff",
+      "durationFrames": 120,
+      "notes": "Introduce el contexto."
+    },
+    {
+      "id": "proof",
+      "role": "proof",
+      "eyebrow": "DEMO / EVIDENCIA",
+      "headline": "Muestra un ejemplo",
+      "detail": "Sustituye este texto por evidencia verificable.",
+      "accent": "#7ee787",
+      "durationFrames": 150,
+      "notes": "Explica la evidencia y su fuente."
+    },
+    {
+      "id": "cta",
+      "role": "cta",
+      "eyebrow": "DEMO / CIERRE",
+      "headline": "Qué hacer a continuación",
+      "detail": "Revisa el contenido antes de compartir.",
+      "accent": "#d2a8ff",
+      "durationFrames": 120,
+      "notes": "Cierra con una decisión."
+    }
+  ]
+}
