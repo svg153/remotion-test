@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "cinematic-workflow",
+  "kind": "explainer",
+  "title": "Del contexto a la entrega",
+  "audience": "Developers",
+  "objective": "Explain a generic versioned development workflow",
+  "engine": "hyperframes",
+  "format": "16:9",
+  "fps": 30,
+  "sensitivity": "public",
+  "demo": true,
+  "mode": "authored",
+  "source": {
+    "project": "composition"
+  },
+  "claims": [],
+  "assets": [],
+  "shots": [
+    {
+      "id": "brief",
+      "role": "hook",
+      "eyebrow": "01 / CONTEXTO",
+      "headline": "Define el problema",
+      "detail": "Objetivo y límites.",
+      "accent": "#79c0ff",
+      "durationFrames": 90
+    },
+    {
+      "id": "plan",
+      "role": "value",
+      "eyebrow": "02 / PLAN",
+      "headline": "Diseña el cambio",
+      "detail": "Decisiones y pasos.",
+      "accent": "#d2a8ff",
+      "durationFrames": 90
+    },
+    {
+      "id": "build",
+      "role": "proof",
+      "eyebrow": "03 / BUILD",
+      "headline": "Construye con evidencia",
+      "detail": "Código y pruebas.",
+      "accent": "#7ee787",
+      "durationFrames": 90
+    },
+    {
+      "id": "review",
+      "role": "cta",
+      "eyebrow": "04 / REVIEW",
+      "headline": "Valida antes de entregar",
+      "detail": "Revisión y decisión.",
+      "accent": "#ffa657",
+      "durationFrames": 90
+    }
+  ]
+}

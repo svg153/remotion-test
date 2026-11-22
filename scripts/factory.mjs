@@ -4,6 +4,7 @@ import { dirname, resolve, isAbsolute, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { validateStory, buildRoot, buildScene, stylesheet, htmlEscape } from "./build-hyperframes.mjs";
+import { validateAuthored, snapshotAuthored } from "./factory-authored.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(readFileSync(resolve(root,"content-factory/tools.json"),"utf8"));
@@ -28,7 +29,9 @@ export function validate(p) {
     if(!c || !slug.test(c.id||"") || ids.has(c.id) || !str(c.text) || !["draft","verified"].includes(c.status)) fail("Invalid claim");
     ids.add(c.id);
   }
-  if (p.assets.length) fail("Generic factory is text-only; author a separately reviewed composition for media assets, do not silently discard them");
+  if (p.mode!==undefined && !["template","authored"].includes(p.mode)) fail("Invalid mode");
+  if (p.mode==="authored") validateAuthored(p);
+  else if (p.assets.length) fail("Generic factory is text-only; use authored mode for reviewed media assets");
   if(videoKinds.includes(p.kind) || p.kind==="pitch"){
     if(!["remotion","hyperframes"].includes(p.engine)) fail("Invalid motion engine");
     if(p.kind==="pitch"&&(p.engine!=="hyperframes"||p.format!=="16:9")) fail("Pitch requires HyperFrames 16:9");
@@ -65,7 +68,8 @@ export function makePlan(p, manifestPath="project.json"){
   validate(p);
   const file=localMedia(p,manifestPath);
   const sourceHash=file?hashFile(file):null;
-  const blockers=[];
+  const authored=p.mode==="authored"?snapshotAuthored(p,manifestPath):null;
+  const blockers=authored?[...authored.blockers]:[];
   if(!p.demo || p.kind==="clip"){
     for(const c of p.claims)if(!claimVerified(c))blockers.push("Unverified claim: "+c.id);
     if(p.kind==="news"&&p.claims.length===0)blockers.push("News requires sourced claims");
@@ -75,10 +79,10 @@ export function makePlan(p, manifestPath="project.json"){
     if(!rights.includes(p.source.rights))blockers.push("Recording rights require approval");
   }
   if(p.kind==="web-demo")blockers.push("Delegated to web-demo-video; not executable here");
-  const approval=digest({project:p,sourceHash});
+  const approval=digest({project:p,sourceHash,authoredHash:authored?.projectHash||null});
   const dimensions=config.presets[p.format];
   const durationFrames=p.shots?.reduce((sum,s)=>sum+s.durationFrames,0)||null;
-  return {id:p.id,kind:p.kind,engine:p.engine,format:p.format,dimensions,fps:p.fps,durationFrames,approval,sourceHash,blockers,demo:p.demo,classification:p.sensitivity};
+  return {id:p.id,kind:p.kind,engine:p.engine,format:p.format,dimensions,fps:p.fps,durationFrames,approval,sourceHash,authored,blockers,demo:p.demo,classification:p.sensitivity};
 }
 function styleFor(width,height){
   if(width===1280&&height===720)return stylesheet;
@@ -103,7 +107,9 @@ export function prepare(p, manifestPath, outputBase=resolve(root,"out/factory"))
   if(videoKinds.includes(p.kind)){
     const {width,height}=plan.dimensions;
     const story={schemaVersion:1,fps:p.fps,shots:p.shots};
-    if(p.engine==="hyperframes"){
+    if(p.mode==="authored"){
+      writeJson(resolve(dir,"authored-source.json"),{projectDir:plan.authored.projectDir,projectHash:plan.authored.projectHash,files:plan.authored.files});
+    }else if(p.engine==="hyperframes"){
       const dest=resolve(dir,"hyperframes");
       mkdirSync(resolve(dest,"compositions"),{recursive:true});
       writeFileSync(resolve(dest,"index.html"),buildRoot(story,width,height));
@@ -163,12 +169,13 @@ function render(p,path,approval){
   }else if(videoKinds.includes(p.kind)){
     const out=resolve(dir,"video.mp4");safeNewOutput(out);
     if(p.engine==="hyperframes"){
-      const project=resolve(dir,"hyperframes");
+      const project=p.mode==="authored"?plan.authored.projectDir:resolve(dir,"hyperframes");
       run("npx",["--yes","hyperframes@"+config.hyperframes,"check",project,"--json"]);
       run("npx",["--yes","hyperframes@"+config.hyperframes,"render",project,"--output",out,"--fps","30","--format","mp4"]);
     }else run("npx",["--no-install","remotion","render","src/index.ts","FactoryVideo",out,"--props="+resolve(dir,"remotion-props.json"),"--codec=h264","--pixel-format=yuv420p"]);
     evidence.outputs.push({file:"video.mp4",metadata:verifyOutput(out,plan.dimensions,plan.durationFrames/p.fps)});
   }else fail("No renderer for "+p.kind);
+  if(p.mode==="authored")evidence.authoredSourceHash=plan.authored.projectHash;
   evidence.ffprobe=exec("ffprobe",["-version"],{capture:true}).split("\n")[0];
   evidence.ffmpeg=exec("ffmpeg",["-version"],{capture:true}).split("\n")[0];
   evidence.toolVersions={hyperframes:config.hyperframes,remotion:config.remotion,node:process.version};

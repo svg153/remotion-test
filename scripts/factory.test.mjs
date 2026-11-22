@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { validate, makePlan, prepare, requireApproval } from "./factory.mjs";
@@ -38,5 +38,24 @@ test("clip approval binds file bytes and authorized local source",()=>{
     const a=makePlan(p,join(tmp,"project.json"));assert.equal(a.blockers.length,0);
     writeFileSync(file,"changed");const b=makePlan(p,join(tmp,"project.json"));assert.notEqual(a.approval,b.approval);
     assert.throws(()=>requireApproval(b,a.approval),/approval/);
+  }finally{rmSync(tmp,{recursive:true,force:true});}
+});
+
+test("authored projects bind exact source and asset bytes and reject missing rights",()=>{
+  const tmp=mkdtempSync(join(tmpdir(),"factory-authored-"));
+  try{
+    const p=fixture("explainer");p.mode="authored";p.source={project:"composition"};
+    const source=join(tmp,"composition");mkdirSync(join(source,"assets"),{recursive:true});
+    writeFileSync(join(source,"index.html"),"<html><body>Test</body></html>");
+    const asset=join(source,"assets/example.png");writeFileSync(asset,"synthetic");
+    const path=join(tmp,"project.json");
+    const a=makePlan(p,path);assert.ok(a.blockers.some(x=>/Missing rights ledger/.test(x)));
+    p.assets=[{path:"assets/example.png",source:"Original test fixture",rights:"owned"}];
+    const b=makePlan(p,path);assert.equal(b.blockers.length,0);
+    const prepared=prepare(p,path,join(tmp,"outputs"));assert.ok(existsSync(join(prepared.dir,"authored-source.json")));assert.ok(!existsSync(join(prepared.dir,"hyperframes/index.html")));
+    writeFileSync(asset,"new bytes");const c=makePlan(p,path);assert.notEqual(b.approval,c.approval);
+    assert.throws(()=>requireApproval(c,b.approval),/approval/);
+    writeFileSync(join(source,"index.html"),'<img src="https://example.org/x.png">');assert.ok(makePlan(p,path).blockers.some(x=>/External runtime/.test(x)));
+    p.source.project="../outside";assert.throws(()=>validate(p),/child directory/);
   }finally{rmSync(tmp,{recursive:true,force:true});}
 });

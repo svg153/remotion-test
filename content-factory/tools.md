@@ -26,3 +26,5 @@ The official Remotion skills pin may describe newer APIs than our locked 4.0.481
 ## Motion language for authored work
 
 The generic typography fallback is only a functional baseline. For final creative work use a hero object or persistent visual motif, visual cause and effect, 2-3 purposeful camera moves, one visual idea per scene, real screenshots or diagrams, rhythm and readable holds. Choose motion based on meaning rather than transition variety. For presentation slides, deliberate static holds and navigation are appropriate. Mark approved narration, music, sound effects and factual claims in the manifest. Export a short motion sample before advancing to a full editorial render. A silent demo is not a finished marketing asset.
+
+The authored route supports local visual/audio/font assets and custom scene code under a reviewable source-tree hash. It deliberately avoids opaque network dependencies. Use original motion recipes and actual permitted media rather than swapping slide text. See [example](examples/cinematic-workflow/).
