@@ -188,8 +188,14 @@ jobs:
           node scripts/factory.mjs prepare workspace/ci-pitch/project.json > out/pitch-preview/prepared.json
           project=$(node -p 'require("./out/pitch-preview/prepared.json").dir')
           test -f "$project/slideshow/index.html"
+          node scripts/pitch-audit.mjs workspace/ci-pitch/project.json "$project/slideshow/index.html" > out/pitch-preview/structure.json
+          # The CLI check without explicit selection may inspect only slide 1.
           npx --yes hyperframes@0.9.72 check "$project/slideshow" --json > out/pitch-preview/check.json || { cat out/pitch-preview/check.json; exit 1; }
-          npx --yes hyperframes@0.9.72 snapshot "$project/slideshow" --at 1.5,5.5,10 --no-end --output out/pitch-preview/stills
+          for scene in hook proof cta; do
+            mkdir -p "out/pitch-preview/by-slide/$scene"
+            npx --yes hyperframes@0.9.72 snapshot "$project/slideshow" --composition "$scene" --frames 1 --no-end --output "out/pitch-preview/by-slide/$scene"
+          done
+          node scripts/pitch-evidence.mjs out/pitch-preview/by-slide > out/pitch-preview/frames.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
@@ -226,8 +232,8 @@ jobs:
           project=content-factory/examples/cinematic-workflow/project.json
           node scripts/factory.mjs plan "$project" > out/authored-render/plan.json
           digest=$(node -p 'require("./out/authored-render/plan.json").approval')
-          node scripts/factory.mjs render "$project" --approve "$digest" > out/authored-render/render-result.json
-          video=$(node -p 'require("./out/authored-render/render-result.json").dir + "/video.mp4"')
+          node scripts/factory.mjs render "$project" --approve "$digest" > out/authored-render/render.log
+          video="out/factory/cinematic-workflow/${digest:0:16}/video.mp4"
           test -s "$video"
           ffprobe -v error -show_entries format=duration,size -show_entries stream=width,height,r_frame_rate -of json "$video" > out/authored-render/ffprobe.json
           cp "$video" out/authored-render/cinematic-workflow.mp4

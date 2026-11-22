@@ -27,7 +27,7 @@
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
     "factory": "node scripts/factory.mjs",
-    "test:factory": "node --test scripts/factory.test.mjs scripts/content-factory.test.mjs"
+    "test:factory": "node --test scripts/factory.test.mjs scripts/content-factory.test.mjs scripts/pitch-audit.test.mjs"
   },
   "sideEffects": [
     "*.css"
