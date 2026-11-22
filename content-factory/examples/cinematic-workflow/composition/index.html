@@ -1,41 +1,9 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<title>Del contexto a la entrega | Creative motion demo</title>
-<style>
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;background:#0b111a;font-family:Inter,Arial,sans-serif;color:#f0f6fc}
-#root{position:relative;width:100%;height:100%;overflow:hidden;background:#0b111a}
-.grid{position:absolute;inset:0;background-image:linear-gradient(#8393b016 1px,transparent 1px),linear-gradient(90deg,#8393b016 1px,transparent 1px);background-size:64px 64px}
-.rail{position:absolute;left:130px;top:230px;width:1020px;height:210px}
-.track{position:absolute;left:55px;right:55px;height:5px;top:89px;border-radius:4px;background:#3c4a5c}
-.fill{position:absolute;left:55px;width:910px;height:5px;top:89px;background:#79c0ff;transform:scaleX(0);transform-origin:left;animation:trace 12s linear both}
-.node{position:absolute;top:40px;width:102px;height:102px;border:2px solid #62748a;border-radius:24px;display:grid;place-items:center;background:#121c2a;color:#ecf2f9;font-size:30px;font-weight:700}
-.node span{position:absolute;top:114px;font-size:21px;font-weight:700;letter-spacing:1px;white-space:nowrap;color:#b3bfcc}
-.n1{left:4px}.n2{left:307px}.n3{left:610px}.n4{left:913px}
-.focus{position:absolute;left:4px;top:40px;width:102px;height:102px;border:4px solid #79c0ff;border-radius:24px;box-shadow:0 0 42px #79c0ff55;animation:journey 12s cubic-bezier(.4,0,.2,1) both;pointer-events:none}
-@keyframes trace{0%,19%{transform:scaleX(0)}27%,44%{transform:scaleX(.333)}52%,69%{transform:scaleX(.666)}77%,100%{transform:scaleX(1)}}
-@keyframes journey{0%,19%{transform:translateX(0);border-color:#79c0ff}27%,44%{transform:translateX(303px);border-color:#d2a8ff}52%,69%{transform:translateX(606px);border-color:#7ee787}77%,100%{transform:translateX(909px);border-color:#ffa657}}
-.brand{position:absolute;top:75px;left:130px;right:130px;display:flex;justify-content:space-between;font-size:23px;font-weight:700;letter-spacing:2px;color:#afbdcc}
-.statement{position:absolute;left:130px;right:130px;top:493px;bottom:auto;height:140px;color:#f0f6fc}
-.statement h1{font-size:56px;line-height:1.1;letter-spacing:-1.5px;margin:0;font-weight:900}
-.statement p{font-size:29px;line-height:1.25;margin:14px 0 0;color:#bcc8d4}
-</style>
-</head>
-<body>
-<main id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1280" data-height="720" data-no-timeline="true">
-<div class="grid" data-layout-ignore="true"></div>
-<div class="brand"><span>WORKFLOW / CREATIVE DEMO</span><span>REVIEW BEFORE SHARING</span></div>
-<div id="world" class="clip rail" data-start="0" data-duration="12" data-track-index="0">
-  <div class="track" data-layout-ignore="true"></div><div class="fill" data-layout-ignore="true"></div>
-  <div class="node n1">01<span>Contexto</span></div><div class="node n2">02<span>Plan</span></div><div class="node n3">03<span>Build</span></div><div class="node n4">04<span>Review</span></div>
-  <div class="focus" data-layout-ignore="true"></div>
-</div>
-<div id="brief" class="clip statement" data-start="0" data-duration="3" data-track-index="1"><h1>Define el problema</h1><p>Objetivo y límites.</p></div>
-<div id="plan" class="clip statement" data-start="3" data-duration="3" data-track-index="1"><h1>Diseña el cambio</h1><p>Decisiones y pasos.</p></div>
-<div id="build" class="clip statement" data-start="6" data-duration="3" data-track-index="1"><h1>Construye con evidencia</h1><p>Código y pruebas.</p></div>
-<div id="review" class="clip statement" data-start="9" data-duration="3" data-track-index="1"><h1>Valida antes de entregar</h1><p>Revisión y decisión.</p></div>
-</main>
-</body>
-</html>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Del contexto a la entrega | Creative motion demo</title>
+<style>html,body{margin:0;width:100%;height:100%;background:#0b111a;overflow:hidden}#root{position:relative;width:100%;height:100%;overflow:hidden}</style></head>
+<body><main id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1280" data-height="720" data-no-timeline="true">
+<div id="world" data-composition-id="world" data-composition-src="compositions/world.html" data-start="0" data-duration="12" data-track-index="0" data-track-kind="graphics" data-width="1280" data-height="720" data-no-timeline="true" style="position:absolute;inset:0;z-index:0"></div>
+<div id="brief" data-composition-id="brief" data-composition-src="compositions/brief.html" data-start="0" data-duration="3" data-track-index="1" data-track-kind="graphics" data-width="1280" data-height="720" data-no-timeline="true" style="position:absolute;inset:0;z-index:1"></div>
+<div id="plan" data-composition-id="plan" data-composition-src="compositions/plan.html" data-start="3" data-duration="3" data-track-index="1" data-track-kind="graphics" data-width="1280" data-height="720" data-no-timeline="true" style="position:absolute;inset:0;z-index:1"></div>
+<div id="build" data-composition-id="build" data-composition-src="compositions/build.html" data-start="6" data-duration="3" data-track-index="1" data-track-kind="graphics" data-width="1280" data-height="720" data-no-timeline="true" style="position:absolute;inset:0;z-index:1"></div>
+<div id="review" data-composition-id="review" data-composition-src="compositions/review.html" data-start="9" data-duration="3" data-track-index="1" data-track-kind="graphics" data-width="1280" data-height="720" data-no-timeline="true" style="position:absolute;inset:0;z-index:1"></div>
+</main></body></html>
