@@ -4,7 +4,7 @@ Read [the factory manual](content-factory/factory.md) and the installed motion-c
 
 - Requests: classify as news, explainer, personal-brand, promo, clip, pitch or web-demo. Use npm run factory -- plan <project.json> to show routing and the approval hash.
 - For videos: default to HyperFrames; use Remotion when existing React components, its ecosystem, or comparative evidence justify it. Read the matching official skill and relevant references. Use local CLI version in content-factory/tools.json, not floating installs or plugin auto-update. Disable optional telemetry and paid/cloud paths unless authorized.
-- News: primary sources and verified claims before final rendering. No customer, personal or private material in this public repository. Workspaces and outputs are ignored; do not publish automatically.
+- News: primary sources and verified claims before final rendering. No customer, personal or private material in this public repository or its public CI artifacts; use an approved local/private environment. Workspaces and outputs are ignored; do not publish automatically.
 - For clips: transcribe authorized local material, propose timecodes with context, approve selection, then use FFmpeg extraction. No automatic claims of semantic quality or speaker tracking.
 - For decks: use the official slideshow contract and present mode. Never render the deck root to MP4; choose a separate film.
 - For actual web UI demos: use the reviewed web-demo-video capability when available, not invented screenshots. Do not install the unmerged PR as a default dependency.

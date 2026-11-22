@@ -60,6 +60,9 @@ jobs:
             git diff --exit-code -- apm.yml apm.lock.yaml
           else
             echo 'Initial lock generated; commit this actual file before merging.'
+            printf '%s\n' 'CF_APM_LOCK_BEGIN'
+            cat apm.lock.yaml
+            printf '%s\n' 'CF_APM_LOCK_END'
           fi
       - name: Upload resolved lock and audit evidence
         if: always()
@@ -79,6 +82,14 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
+      - name: Install local media tools if missing
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
       - name: Make a synthetic 3-second local source and project
         run: |
           mkdir -p workspace/ci-clip
@@ -91,4 +102,43 @@ jobs:
         with:
           name: factory-clip-smoke
           path: out/factory/ci-clip/
+          retention-days: 7
+
+  motion-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install local media tools if missing
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+      - name: Export short silent fixtures using both engines
+        run: |
+          mkdir -p workspace/ci-motion
+          node --input-type=module -e 'import fs from "node:fs"; const base=JSON.parse(fs.readFileSync("content-factory/templates/explainer.json")); for (const engine of ["hyperframes","remotion"]) { const p=structuredClone(base); p.id="ci-"+engine; p.engine=engine; p.shots.forEach(s=>s.durationFrames=60); fs.writeFileSync("workspace/ci-motion/"+engine+".json", JSON.stringify(p)); }'
+          for engine in hyperframes remotion; do
+            node scripts/factory.mjs plan "workspace/ci-motion/$engine.json" > "workspace/ci-motion/$engine-plan.json"
+            digest=$(node -p 'require("./workspace/ci-motion/'"$engine"'-plan.json").approval')
+            node scripts/factory.mjs render "workspace/ci-motion/$engine.json" --approve "$digest"
+          done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: factory-motion-smoke
+          path: |
+            out/factory/ci-hyperframes/
+            out/factory/ci-remotion/
+          if-no-files-found: warn
           retention-days: 7

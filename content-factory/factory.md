@@ -17,13 +17,13 @@ npm run factory -- plan workspace/github-weekly/project.json
 npm run factory -- prepare workspace/github-weekly/project.json
 ```
 
-The `workspace/` directory is ignored. Edit the project manifest there. The plan prints a SHA-256 approval digest binding the exact manifest; no execution or publication happens during plan. Prepare generates a deterministic preview project under `out/factory/<id>/<digest-prefix>/` without overwriting source files. It does not execute either renderer. For a video, inspect the prepared project in the native preview, create a small motion test and review the actual frames. For a final export, explicitly approve the digest shown by plan:
+The `workspace/` directory is ignored. Use Linux/macOS or WSL on Windows for the included CLI; `npx` and FFmpeg must be on PATH. Edit the project manifest there. The plan prints a SHA-256 approval digest binding the exact manifest; no execution or publication happens during plan. Prepare generates a deterministic preview project under `out/factory/<id>/<digest-prefix>/` without overwriting source files. It does not execute either renderer. For a video, inspect the prepared project in the native preview, create a small motion test and review the actual frames. For a final export, explicitly approve the digest shown by plan:
 
 ```bash
 npm run factory -- render workspace/github-weekly/project.json --approve <digest>
 ```
 
-Change any content and the digest changes. A final render also rejects unverified claims or unresolved asset rights, and blocks private/internal manifests (keep those in a separately approved private environment). Demo fixtures can render with a warning label but are never publication-approved. No publishing command. Each local render records the executable arguments, available engine/tool versions, output metadata and approval digest. Review the resulting media yourself; technical checks alone are not editorial clearance.
+Change any content and the digest changes. A final render also rejects unverified claims or unresolved asset rights, and accepts only public or explicitly authorized local data (never commit internal/private manifests to this public repo). Demo fixtures can render with a warning label but are never publication-approved. No publishing command. Each local render records the executable arguments, available engine/tool versions, output metadata and approval digest. Review the resulting media yourself; technical checks alone are not editorial clearance.
 
 | Template | Execution |
 | --- | --- |
@@ -60,7 +60,7 @@ The generated slide JSON island specifies slides and speaker notes. Present mode
 
 1. Save an authorized local recording outside Git. Obtain a local timecoded transcript (e.g. HyperFrames CLI transcribe/Whisper after verifying installed CLI help), identify 2-5 self-contained extracts, inspect surrounding context and document their purpose.
 2. Create the clip template and edit source.path to an absolute or project-relative **local file**, source.rights and sensitivity, plus start/end seconds for each proposed clip. The CLI rejects URLs, unsafe IDs, invalid timecodes and out-of-bounds segments. Use one manifest per source.
-3. Review the exact segments and approve the digest. Render local MP4 clips with FFmpeg, preserve aspect ratio by letterbox/pillarbox (not AI reframe), probe source and results. Keep source and results private/local as appropriate. For real internal/private footage, use an approved private project; the public factory deliberately rejects those classifications.
+3. Review the exact segments and approve the digest. Render local MP4 clips with FFmpeg, preserve aspect ratio by letterbox/pillarbox (not AI reframe), probe source and results. Keep source and results private/local as appropriate. Use `authorized-local` only for explicitly authorized recordings and a local environment; do not put internal footage, transcripts, manifests or evidence into the repository or CI artifacts. Use a private project if the policy requires it.
 4. For speaker tracking, subtitles and fancy framing, run a separate reviewed AutoClip or authored overlay pilot; do not hallucinate features.
 5. Review clips for context, sound, rights, caption accuracy and framing.
 
