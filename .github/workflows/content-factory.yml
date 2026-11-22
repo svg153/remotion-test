@@ -163,3 +163,78 @@ jobs:
           path: out/authored-preview/
           if-no-files-found: warn
           retention-days: 7
+
+
+  pitch-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      HYPERFRAMES_NO_TELEMETRY: "1"
+      HYPERFRAMES_NO_UPDATE_CHECK: "1"
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      DO_NOT_TRACK: "1"
+      npm_config_ignore_scripts: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Generate a local interactive pitch fixture
+        run: |
+          mkdir -p workspace/ci-pitch out/pitch-preview
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("content-factory/templates/pitch.json")); p.id="ci-pitch"; fs.writeFileSync("workspace/ci-pitch/project.json",JSON.stringify(p));'
+          node scripts/factory.mjs prepare workspace/ci-pitch/project.json > out/pitch-preview/prepared.json
+          project=$(node -p 'require("./out/pitch-preview/prepared.json").dir')
+          test -f "$project/slideshow/index.html"
+          npx --yes hyperframes@0.9.72 check "$project/slideshow" --json > out/pitch-preview/check.json || { cat out/pitch-preview/check.json; exit 1; }
+          npx --yes hyperframes@0.9.72 snapshot "$project/slideshow" --at 1.5,5.5,10 --no-end --output out/pitch-preview/stills
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: factory-pitch-preview
+          path: out/pitch-preview/
+          if-no-files-found: warn
+          retention-days: 7
+
+  authored-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      HYPERFRAMES_NO_TELEMETRY: "1"
+      HYPERFRAMES_NO_UPDATE_CHECK: "1"
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      DO_NOT_TRACK: "1"
+      npm_config_ignore_scripts: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Install media tools
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+      - name: Render authored cinematic demo as full MP4
+        run: |
+          mkdir -p out/authored-render
+          project=content-factory/examples/cinematic-workflow/project.json
+          node scripts/factory.mjs plan "$project" > out/authored-render/plan.json
+          digest=$(node -p 'require("./out/authored-render/plan.json").approval')
+          node scripts/factory.mjs render "$project" --approve "$digest" > out/authored-render/render-result.json
+          video=$(node -p 'require("./out/authored-render/render-result.json").dir + "/video.mp4"')
+          test -s "$video"
+          ffprobe -v error -show_entries format=duration,size -show_entries stream=width,height,r_frame_rate -of json "$video" > out/authored-render/ffprobe.json
+          cp "$video" out/authored-render/cinematic-workflow.mp4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: factory-cinematic-mp4
+          path: out/authored-render/
+          if-no-files-found: warn
+          retention-days: 7
