@@ -46,24 +46,13 @@ jobs:
           setup-only: 'true'
       - name: Resolve or replay APM skill pins
         run: |
-          if test -f apm.lock.yaml; then
-            apm install --frozen --target agent-skills
-          else
-            apm install --target agent-skills
-          fi
+          apm install --frozen --target agent-skills
           test -f apm.lock.yaml
           for skill in motion-content-production remotion-best-practices hyperframes hyperframes-cli hyperframes-registry media-use slideshow remotion-to-hyperframes; do
             test -s ".agents/skills/$skill/SKILL.md"
           done
           apm audit
-          if git ls-files --error-unmatch apm.lock.yaml >/dev/null 2>&1; then
-            git diff --exit-code -- apm.yml apm.lock.yaml
-          else
-            echo 'Initial lock generated; commit this actual file before merging.'
-            printf '%s\n' 'CF_APM_LOCK_BEGIN'
-            cat apm.lock.yaml
-            printf '%s\n' 'CF_APM_LOCK_END'
-          fi
+          git diff --exit-code -- apm.yml apm.lock.yaml
       - name: Upload resolved lock and audit evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
