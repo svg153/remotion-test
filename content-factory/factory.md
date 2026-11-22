@@ -97,3 +97,5 @@ This excerpt is merged into the existing complete manifest. Use local assets and
 ## Pitch verification caveat
 
 A bare HyperFrames check on a multi-root slideshow can report a clean first slide while never inspecting later slides. The factory therefore runs a structural storyboard audit (`scripts/pitch-audit.mjs`) and captures each referenced slide separately (`--composition <sceneId>`), requiring distinct images in CI. The native `present` command remains the interactive presenter path. This is not a substitute for checking keyboard navigation, presenter notes, projector and remote-control behavior on the target device. Exporting a deck root as MP4 is forbidden: use a separately authored video teaser.
+
+Standalone per-slide previews are generated under `slide-preview/<sceneId>/`. They allow native HyperFrames checks and snapshots of every slide, since the CLI's generic video check cannot reliably seek beyond the first top-level slideshow root. These previews are testing artifacts, not additional presentation decks. The real deck remains `slideshow/index.html`, served through `hyperframes present`.

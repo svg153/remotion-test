@@ -193,7 +193,8 @@ jobs:
           npx --yes hyperframes@0.9.72 check "$project/slideshow" --json > out/pitch-preview/check.json || { cat out/pitch-preview/check.json; exit 1; }
           for scene in hook proof cta; do
             mkdir -p "out/pitch-preview/by-slide/$scene"
-            npx --yes hyperframes@0.9.72 snapshot "$project/slideshow" --composition "$scene" --frames 1 --no-end --output "out/pitch-preview/by-slide/$scene"
+            npx --yes hyperframes@0.9.72 check "$project/slide-preview/$scene" --json > "out/pitch-preview/by-slide/$scene/check.json" || { cat "out/pitch-preview/by-slide/$scene/check.json"; exit 1; }
+            npx --yes hyperframes@0.9.72 snapshot "$project/slide-preview/$scene" --at 1.5 --no-end --output "out/pitch-preview/by-slide/$scene"
           done
           node scripts/pitch-evidence.mjs out/pitch-preview/by-slide > out/pitch-preview/frames.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

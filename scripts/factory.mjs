@@ -89,6 +89,10 @@ function styleFor(width,height){
   if(height>width)return stylesheet+"\n#root{padding:180px 110px 200px}.top{flex-direction:column;align-items:flex-start;gap:15px}.top strong{font-size:27px}.top span{font-size:24px}.middle{max-width:860px}h1{font-size:88px;line-height:1.1}p{font-size:42px;max-width:860px}.bottom{font-size:21px;gap:20px}.orbit{right:32px;top:360px;opacity:.22}";
   return stylesheet+"\n#root{padding:110px}.middle{max-width:860px}h1{font-size:76px}p{font-size:34px;max-width:860px}.top strong{font-size:20px}.top span{font-size:18px}";
 }
+function deckPreviewHtml(p,shot,width,height){
+  const isolated=deckHtml({...p,shots:[shot]},width,height);
+  return isolated.replace(/<script type="application\/hyperframes-slideshow\+json">[\s\S]*?<\/script>/,"");
+}
 function deckHtml(p,width,height){
   let t=0;
   const slides=p.shots.map(s=>({sceneId:s.id,notes:s.notes}));
@@ -119,6 +123,13 @@ export function prepare(p, manifestPath, outputBase=resolve(root,"out/factory"))
     const dest=resolve(dir,"slideshow");
     mkdirSync(dest,{recursive:true});
     writeFileSync(resolve(dest,"index.html"),deckHtml(p,plan.dimensions.width,plan.dimensions.height));
+    // Native HyperFrames snapshot/check may only inspect the first root in a deck.
+    // Standalone roots allow testing *all* slides without pretending the deck is a video.
+    for(const shot of p.shots){
+      const preview=resolve(dir,"slide-preview",shot.id);
+      mkdirSync(preview,{recursive:true});
+      writeFileSync(resolve(preview,"index.html"),deckPreviewHtml(p,shot,plan.dimensions.width,plan.dimensions.height));
+    }
   }else if(p.kind==="web-demo"){
     writeJson(resolve(dir,"handoff.json"),{route:"web-demo-video",upstream:"https://github.com/svg153/skills/pull/123",status:"pending-reviewed-plugin",objective:p.objective,title:p.title});
   }else{
