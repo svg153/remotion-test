@@ -197,6 +197,30 @@ jobs:
             npx --yes hyperframes@0.9.72 snapshot "$project/slide-preview/$scene" --at 1.5 --no-end --output "out/pitch-preview/by-slide/$scene"
           done
           node scripts/pitch-evidence.mjs out/pitch-preview/by-slide > out/pitch-preview/frames.json
+      - name: Verify real presenter and audience HTTP endpoints
+        run: |
+          set -euo pipefail
+          project=$(node -p 'require("./out/pitch-preview/prepared.json").dir')
+          npx --yes hyperframes@0.9.72 present "$project/slideshow" --no-open > out/pitch-preview/present.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          url=""
+          for attempt in $(seq 1 60); do
+            url=$(grep -Eo 'http://(localhost|127.0.0.1):[0-9]+' out/pitch-preview/present.log | head -n 1 || true)
+            if test -n "$url" && curl --max-time 2 -fsS "$url/" -o out/pitch-preview/presenter.html; then
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              cat out/pitch-preview/present.log
+              exit 1
+            fi
+            sleep 0.5
+          done
+          test -s out/pitch-preview/presenter.html
+          grep -q "hyperframes-slideshow" out/pitch-preview/presenter.html
+          curl --max-time 5 -fsS "$url/?mode=audience" -o out/pitch-preview/audience.html
+          test -s out/pitch-preview/audience.html
+          grep -q "hyperframes-slideshow" out/pitch-preview/audience.html
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
