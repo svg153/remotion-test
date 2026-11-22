@@ -1,4 +1,6 @@
-# GitHub Tutorial Video - Remotion
+# Content Factory (Remotion + HyperFrames)
+
+Start with the [Content Factory manual](content-factory/factory.md), [tool registry](content-factory/tools.md) and `npm run factory -- help`. This project retains the original Remotion tutorial and benchmark below.
 
 > **A professional animated video tutorial showing how to create a GitHub account and push a local repository.**
 
@@ -228,6 +230,10 @@ npx remotion still MyComp --scale=0.25 --frame=420
 ```bash
 npx remotion render src/index.ts MyComp out/video.mp4 --image-format=jpeg --codec=libx264 --pixel-format=yuv420p
 ```
+
+## 🎞️ Staged video production starter
+
+Use [the review-gated content factory](content-factory/README.md) to prototype a storyboard, still previews, a short motion test and final MP4/GIF exports using data-driven landscape/portrait compositions. It leaves the existing GitHub tutorial intact.
 
 ## 🤝 Contributing
 

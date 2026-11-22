@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "apm": "0.37.0",
+  "hyperframes": "0.9.72",
+  "remotion": "4.0.481",
+  "node": ">=22",
+  "presets": {
+    "16:9": {
+      "width": 1280,
+      "height": 720
+    },
+    "9:16": {
+      "width": 1080,
+      "height": 1920
+    },
+    "1:1": {
+      "width": 1080,
+      "height": 1080
+    }
+  }
+}

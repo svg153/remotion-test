@@ -1,0 +1,28 @@
+<template>
+<style>
+#root{position:absolute;inset:0;background:#0b111a;color:#f0f6fc;font-family:Inter,Arial,sans-serif;overflow:hidden}
+#root *{box-sizing:border-box}
+.grid{position:absolute;inset:0;background-image:linear-gradient(#8393b016 1px,transparent 1px),linear-gradient(90deg,#8393b016 1px,transparent 1px);background-size:64px 64px}
+.rail{position:absolute;left:130px;top:230px;width:1020px;height:210px}
+.track{position:absolute;left:55px;right:55px;height:5px;top:89px;border-radius:4px;background:#3c4a5c}
+.fill{position:absolute;left:55px;width:910px;height:5px;top:89px;background:#79c0ff;transform:scaleX(0);transform-origin:left;animation:trace 12s linear both}
+.node{position:absolute;top:40px;width:102px;height:102px;border:2px solid #62748a;border-radius:24px;display:grid;place-items:center;background:#121c2a;color:#ecf2f9;font-size:30px;font-weight:700}
+.node-label{position:absolute;top:158px;width:102px;font-size:19px;font-weight:700;letter-spacing:.3px;text-align:center;white-space:nowrap;color:#b3bfcc}
+.n1{left:4px}.n2{left:307px}.n3{left:610px}.n4{left:913px}
+.focus{position:absolute;left:4px;top:40px;width:102px;height:102px;border:4px solid #79c0ff;border-radius:24px;box-shadow:0 0 42px #79c0ff55;animation:journey 12s cubic-bezier(.4,0,.2,1) both;pointer-events:none}
+@keyframes trace{0%,19%{transform:scaleX(0)}27%,44%{transform:scaleX(.333)}52%,69%{transform:scaleX(.666)}77%,100%{transform:scaleX(1)}}
+@keyframes journey{0%,19%{transform:translateX(0);border-color:#79c0ff}27%,44%{transform:translateX(303px);border-color:#d2a8ff}52%,69%{transform:translateX(606px);border-color:#7ee787}77%,100%{transform:translateX(909px);border-color:#ffa657}}
+.brand{position:absolute;top:75px;left:130px;right:130px;display:flex;justify-content:space-between;font-size:23px;font-weight:700;letter-spacing:2px;color:#afbdcc}
+
+</style>
+<div id="root" data-composition-id="world" data-width="1280" data-height="720" data-no-timeline="true">
+<div class="grid" data-layout-ignore="true"></div>
+<div class="brand"><span>WORKFLOW / CREATIVE DEMO</span><span>REVIEW BEFORE SHARING</span></div>
+<div class="rail">
+  <div class="track" data-layout-ignore="true"></div><div class="fill" data-layout-ignore="true"></div>
+  <div class="node n1">01</div><div class="node n2">02</div><div class="node n3">03</div><div class="node n4">04</div>
+  <div class="node-label n1">Contexto</div><div class="node-label n2">Plan</div><div class="node-label n3">Build</div><div class="node-label n4">Review</div>
+  <div class="focus" data-layout-ignore="true"></div>
+</div>
+</div>
+</template>

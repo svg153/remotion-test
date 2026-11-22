@@ -1,4 +1,4 @@
-import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from "remotion";
 
 // GitHub brand colors
 const GITHUB_COLORS = {
@@ -123,9 +123,9 @@ const HeroSection: React.FC = () => {
           <Particle
             key={i}
             delay={i * 5}
-            size={Math.random() * 4 + 2}
-            x={Math.random() * 100}
-            y={Math.random() * 100}
+            size={2 + ((i * 17) % 5)}
+            x={(i * 37) % 100}
+            y={(i * 53) % 100}
           />
         ))}
       </div>
@@ -380,7 +380,7 @@ export const MyComposition: React.FC = () => {
       }}
     >
       {/* Hero Section (0-120 frames / 0-4 seconds) */}
-      <Sequence from={0} durationInFrames={120}>
+      <Sequence durationInFrames={120}>
         <HeroSection />
       </Sequence>
       

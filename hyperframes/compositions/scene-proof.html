@@ -1,0 +1,35 @@
+<template>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;color:#f0f6fc;background:#0d1117;font-family:Inter,Arial,sans-serif}
+#root{position:relative;width:100%;height:100%;overflow:hidden;background:#0d1117}
+#root{position:absolute;inset:0;padding:70px 120px 58px;background:#0d1117;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;animation:arrive var(--shot-duration) linear both}
+.grid{position:absolute;inset:0;background-image:linear-gradient(to right,#ffffff22 1px,transparent 1px),linear-gradient(to bottom,#ffffff22 1px,transparent 1px);background-size:70px 70px;opacity:.16}
+.glow{position:absolute;inset:0;background:radial-gradient(ellipse at 78% 25%,color-mix(in srgb,var(--accent) 24%,transparent),transparent 45%);pointer-events:none}
+.top,.middle,.bottom{position:relative;z-index:2}
+.top,.bottom{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.top strong{font-size:22px;letter-spacing:4px;color:var(--accent)}
+.top span{font-size:20px;letter-spacing:2px;color:#9da7b2}
+.middle{max-width:1020px}
+h1{font-size:86px;line-height:1.08;font-weight:900;letter-spacing:-3.2px;margin:0;overflow-wrap:break-word}
+.rule{width:170px;height:8px;border-radius:5px;background:var(--accent);margin:34px 0}
+p{font-size:35px;color:#b0b8c3;margin:0;line-height:1.35;max-width:940px}
+.bottom{font-size:20px;color:#9da7b2}
+.tick{width:66px;height:6px;background:var(--accent);border-radius:4px}
+.orbit{position:absolute;right:48px;top:155px;width:320px;height:320px;opacity:.25;z-index:1;transform:rotate(-12deg)}
+.orbit i{position:absolute;border:2px solid var(--accent);border-radius:50%}
+.orbit i:nth-child(1){inset:0}.orbit i:nth-child(2){inset:46px}.orbit i:nth-child(3){inset:100px}
+.orbit b{position:absolute;top:0;right:128px;width:22px;height:22px;border-radius:50%;background:var(--accent);box-shadow:0 0 70px var(--accent)}
+.progress{position:absolute;bottom:0;left:0;width:100%;height:8px;background:var(--accent);transform-origin:0 50%;animation:progress var(--shot-duration) linear both}
+@keyframes arrive{0%{opacity:1;transform:translateY(8px) scale(1.008)}12%{opacity:1;transform:translateY(0) scale(1)}82%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-24px) scale(.99)}}
+@keyframes progress{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+</style>
+<div id="root" class="shot clip" data-composition-id="scene-proof" data-width="1280" data-height="720" data-no-timeline="true" style="--accent:#7ee787;--shot-duration:3s">
+  <div class="grid" data-layout-ignore="true"></div><div class="glow" data-layout-ignore="true"></div>
+  <div class="orbit" data-layout-ignore="true"><i></i><i></i><i></i><b></b></div>
+  <div class="top"><strong>LO QUE IMPORTA</strong><span>03 / 04 &nbsp; PROOF</span></div>
+  <div class="middle"><h1>Código. Comunidad. Aprendizaje.</h1><div class="rule"></div><p>Conocimiento técnico para compartir.</p></div>
+  <div class="bottom"><span>CREATIVE PROOF OF CONCEPT / NO PUBLICAR SIN REVISIÓN</span><span class="tick"></span></div>
+  <div class="progress" data-layout-ignore="true"></div>
+</div>
+</template>

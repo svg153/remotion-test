@@ -1,0 +1,94 @@
+name: HyperFrames Story Parity
+
+on:
+  pull_request:
+    paths:
+      - "content-factory/**"
+      - "hyperframes/**"
+      - "scripts/build-hyperframes.mjs"
+      - "scripts/content-factory.test.mjs"
+      - ".github/workflows/hyperframes-static.yml"
+  push:
+    paths:
+      - "content-factory/**"
+      - "hyperframes/**"
+      - "scripts/build-hyperframes.mjs"
+      - "scripts/content-factory.test.mjs"
+      - ".github/workflows/hyperframes-static.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  static-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "22"
+      - run: node scripts/build-hyperframes.mjs --check
+      - run: node --test scripts/content-factory.test.mjs
+
+  native-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      HYPERFRAMES_NO_TELEMETRY: "1"
+      HYPERFRAMES_NO_UPDATE_CHECK: "1"
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      DO_NOT_TRACK: "1"
+      npm_config_ignore_scripts: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "22"
+      - name: Check HyperFrames with pinned CLI 0.9.72
+        run: |
+          mkdir -p out/hyperframes
+          npx --yes hyperframes@0.9.72 check ./hyperframes --json > out/hyperframes/check.json || { cat out/hyperframes/check.json; exit 1; }
+      - name: Render one snapshot from each scene
+        run: |
+          npx --yes hyperframes@0.9.72 snapshot ./hyperframes --at 1.16,4.16,7.16,10.16 --no-end --output out/hyperframes/stills
+      - name: Upload preview evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: hyperframes-native-preview
+          path: out/hyperframes/
+          if-no-files-found: warn
+          retention-days: 7
+
+  remotion-stills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Render four matching Remotion stills
+        run: |
+          mkdir -p out/compare/remotion
+          npx remotion still src/index.ts ContentFactoryLandscape out/compare/remotion/hook.png --frame=35
+          npx remotion still src/index.ts ContentFactoryLandscape out/compare/remotion/value.png --frame=125
+          npx remotion still src/index.ts ContentFactoryLandscape out/compare/remotion/proof.png --frame=215
+          npx remotion still src/index.ts ContentFactoryLandscape out/compare/remotion/cta.png --frame=305
+      - name: Upload Remotion frame evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: remotion-paired-stills
+          path: out/compare/remotion/
+          if-no-files-found: warn
+          retention-days: 7

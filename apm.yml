@@ -1,0 +1,17 @@
+name: content-factory
+version: 1.0.0
+description: Review-gated local audiovisual production
+targets:
+  - agent-skills
+dependencies:
+  apm:
+    - svg153/skills/skills/motion-content-production#20a1f7f58be5d298486c6d8af0de5a90f131d09d
+    - remotion-dev/skills/skills/remotion-best-practices#6f55706d1069e512430582ad86e4e57dc07afe1b
+    - heygen-com/hyperframes/skills/hyperframes#cf28a00053074df2afeb20da225400bd0dc7add0
+    - heygen-com/hyperframes/skills/hyperframes-cli#cf28a00053074df2afeb20da225400bd0dc7add0
+    - heygen-com/hyperframes/skills/hyperframes-registry#cf28a00053074df2afeb20da225400bd0dc7add0
+    - heygen-com/hyperframes/skills/media-use#cf28a00053074df2afeb20da225400bd0dc7add0
+    - heygen-com/hyperframes/skills/slideshow#cf28a00053074df2afeb20da225400bd0dc7add0
+    - heygen-com/hyperframes/skills/remotion-to-hyperframes#cf28a00053074df2afeb20da225400bd0dc7add0
+  mcp: []
+scripts: {}

@@ -1,0 +1,271 @@
+name: Content Factory
+on:
+  pull_request:
+    paths:
+      - 'apm.yml'
+      - 'apm.lock.yaml'
+      - 'AGENTS.md'
+      - 'content-factory/**'
+      - 'scripts/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/content-factory.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: factory-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: node scripts/build-hyperframes.mjs --check
+      - run: npm run test:factory
+  skill-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: microsoft/apm-action@64544310be26812256300543071bfbaa8bc93aad
+        with:
+          apm-version: '0.37.0'
+          setup-only: 'true'
+      - name: Resolve or replay APM skill pins
+        run: |
+          apm install --frozen --target agent-skills
+          test -f apm.lock.yaml
+          for skill in motion-content-production remotion-best-practices hyperframes hyperframes-cli hyperframes-registry media-use slideshow remotion-to-hyperframes; do
+            test -s ".agents/skills/$skill/SKILL.md"
+          done
+          apm audit
+          git diff --exit-code -- apm.yml apm.lock.yaml
+      - name: Upload resolved lock and audit evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: apm-lock
+          path: apm.lock.yaml
+          if-no-files-found: warn
+          retention-days: 7
+  local-clip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Install local media tools if missing
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+      - name: Make a synthetic 3-second local source and project
+        run: |
+          mkdir -p workspace/ci-clip
+          ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=640x360:rate=30 -t 3 -c:v libx264 -pix_fmt yuv420p workspace/ci-clip/input.mp4
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("content-factory/templates/clip.json")); p.id="ci-clip"; p.source={path:"input.mp4",rights:"owned"}; p.clips=[{id:"extract",start:0.5,end:2.5,reason:"Synthetic fixture"}]; fs.writeFileSync("workspace/ci-clip/project.json",JSON.stringify(p));'
+          node scripts/factory.mjs plan workspace/ci-clip/project.json > workspace/ci-clip/plan.json
+          digest=$(node -p 'require("./workspace/ci-clip/plan.json").approval')
+          node scripts/factory.mjs render workspace/ci-clip/project.json --approve "$digest"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: factory-clip-smoke
+          path: out/factory/ci-clip/
+          retention-days: 7
+
+  motion-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install local media tools if missing
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+      - name: Export short silent fixtures using both engines
+        run: |
+          mkdir -p workspace/ci-motion
+          node --input-type=module -e 'import fs from "node:fs"; const base=JSON.parse(fs.readFileSync("content-factory/templates/explainer.json")); for (const engine of ["hyperframes","remotion"]) { const p=structuredClone(base); p.id="ci-"+engine; p.engine=engine; p.shots.forEach(s=>s.durationFrames=60); fs.writeFileSync("workspace/ci-motion/"+engine+".json", JSON.stringify(p)); }'
+          for engine in hyperframes remotion; do
+            node scripts/factory.mjs plan "workspace/ci-motion/$engine.json" > "workspace/ci-motion/$engine-plan.json"
+            digest=$(node -p 'require("./workspace/ci-motion/'"$engine"'-plan.json").approval')
+            node scripts/factory.mjs render "workspace/ci-motion/$engine.json" --approve "$digest"
+          done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: factory-motion-smoke
+          path: |
+            out/factory/ci-hyperframes/
+            out/factory/ci-remotion/
+          if-no-files-found: warn
+          retention-days: 7
+
+  authored-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      HYPERFRAMES_NO_TELEMETRY: "1"
+      HYPERFRAMES_NO_UPDATE_CHECK: "1"
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      DO_NOT_TRACK: "1"
+      npm_config_ignore_scripts: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Verify authored source and capture actual frames
+        run: |
+          mkdir -p out/authored-preview
+          node scripts/factory.mjs plan content-factory/examples/cinematic-workflow/project.json > out/authored-preview/plan.json
+          node -e 'const p=require("./out/authored-preview/plan.json"); if (p.blockers.length) throw Error(p.blockers.join("; "));'
+          project=content-factory/examples/cinematic-workflow/composition
+          npx --yes hyperframes@0.9.72 check "$project" --json > out/authored-preview/check.json || { cat out/authored-preview/check.json; exit 1; }
+          npx --yes hyperframes@0.9.72 snapshot "$project" --at 1.5,4.5,7.5,10.5 --no-end --output out/authored-preview/stills
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: factory-authored-preview
+          path: out/authored-preview/
+          if-no-files-found: warn
+          retention-days: 7
+
+
+  pitch-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      HYPERFRAMES_NO_TELEMETRY: "1"
+      HYPERFRAMES_NO_UPDATE_CHECK: "1"
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      DO_NOT_TRACK: "1"
+      npm_config_ignore_scripts: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Generate a local interactive pitch fixture
+        run: |
+          mkdir -p workspace/ci-pitch out/pitch-preview
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("content-factory/templates/pitch.json")); p.id="ci-pitch"; fs.writeFileSync("workspace/ci-pitch/project.json",JSON.stringify(p));'
+          node scripts/factory.mjs prepare workspace/ci-pitch/project.json > out/pitch-preview/prepared.json
+          project=$(node -p 'require("./out/pitch-preview/prepared.json").dir')
+          test -f "$project/slideshow/index.html"
+          node scripts/pitch-audit.mjs workspace/ci-pitch/project.json "$project/slideshow/index.html" > out/pitch-preview/structure.json
+          # The CLI check without explicit selection may inspect only slide 1.
+          npx --yes hyperframes@0.9.72 check "$project/slideshow" --json > out/pitch-preview/check.json || { cat out/pitch-preview/check.json; exit 1; }
+          for scene in hook proof cta; do
+            mkdir -p "out/pitch-preview/by-slide/$scene"
+            npx --yes hyperframes@0.9.72 check "$project/slide-preview/$scene" --json > "out/pitch-preview/by-slide/$scene/check.json" || { cat "out/pitch-preview/by-slide/$scene/check.json"; exit 1; }
+            npx --yes hyperframes@0.9.72 snapshot "$project/slide-preview/$scene" --at 1.5 --no-end --output "out/pitch-preview/by-slide/$scene"
+          done
+          node scripts/pitch-evidence.mjs out/pitch-preview/by-slide > out/pitch-preview/frames.json
+      - name: Verify real presenter and audience HTTP endpoints
+        run: |
+          set -euo pipefail
+          project=$(node -p 'require("./out/pitch-preview/prepared.json").dir')
+          npx --yes hyperframes@0.9.72 present "$project/slideshow" --no-open > out/pitch-preview/present.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          url=""
+          for attempt in $(seq 1 60); do
+            url=$(grep -Eo 'http://(localhost|127.0.0.1):[0-9]+' out/pitch-preview/present.log | head -n 1 || true)
+            if test -n "$url" && curl --max-time 2 -fsS "$url/" -o out/pitch-preview/presenter.html; then
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              cat out/pitch-preview/present.log
+              exit 1
+            fi
+            sleep 0.5
+          done
+          test -s out/pitch-preview/presenter.html
+          grep -q "hyperframes-slideshow" out/pitch-preview/presenter.html
+          curl --max-time 5 -fsS "$url/?mode=audience" -o out/pitch-preview/audience.html
+          test -s out/pitch-preview/audience.html
+          grep -q "hyperframes-slideshow" out/pitch-preview/audience.html
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: factory-pitch-preview
+          path: out/pitch-preview/
+          if-no-files-found: warn
+          retention-days: 7
+
+  authored-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      HYPERFRAMES_NO_TELEMETRY: "1"
+      HYPERFRAMES_NO_UPDATE_CHECK: "1"
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      DO_NOT_TRACK: "1"
+      npm_config_ignore_scripts: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Install media tools
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+      - name: Render authored cinematic demo as full MP4
+        run: |
+          mkdir -p out/authored-render
+          project=content-factory/examples/cinematic-workflow/project.json
+          node scripts/factory.mjs plan "$project" > out/authored-render/plan.json
+          digest=$(node -p 'require("./out/authored-render/plan.json").approval')
+          node scripts/factory.mjs render "$project" --approve "$digest" > out/authored-render/render.log
+          video="out/factory/cinematic-workflow/${digest:0:16}/video.mp4"
+          test -s "$video"
+          ffprobe -v error -show_entries format=duration,size -show_entries stream=width,height,r_frame_rate -of json "$video" > out/authored-render/ffprobe.json
+          cp "$video" out/authored-render/cinematic-workflow.mp4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: factory-cinematic-mp4
+          path: out/authored-render/
+          if-no-files-found: warn
+          retention-days: 7
